@@ -185,9 +185,22 @@ Importing an older JSON rewrites workflow node positions and can undo the user's
 Fix:
 
 - Export current DB workflow first with `npm run export:workflow`.
-- Patch `workflows\n8n_하루건강약사_수동실행.json`.
+- Patch the exported JSON in `workflows\`.
 - Import only after the user has saved their current layout, or after exporting the current DB.
 - Never rerun old conversion scripts over the user's edited layout.
+
+### BGM Pending Then Render Fails
+
+Cause:
+
+KIE BGM can still be `PENDING` after the first 30-second wait. If `bgm_audio_url` is still empty, `Prepare Local FFmpeg Render` must not run yet.
+
+Fix:
+
+- Keep `Parse BGM Result -> BGM Ready?`.
+- If true, continue to `Use Live Render?`.
+- If false, run `Wait BGM Retry 90s -> KIE Get BGM Task Retry -> Parse BGM Result Final`.
+- `Parse BGM Result Final` should throw a BGM-specific error if URL is still missing, instead of letting render fail with missing `bgm_audio_url`.
 
 ### KIE `Unauthorized`
 

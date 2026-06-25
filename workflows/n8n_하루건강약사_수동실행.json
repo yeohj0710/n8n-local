@@ -1,4 +1,5 @@
 {
+  "id": "mxrYb3maJS31gEYC",
   "name": "하루건강약사 - 로컬 n8n 이미지+BGM 업로드",
   "nodes": [
     {
@@ -343,7 +344,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const base = $('Normalize BGM Task').first().json;\nconst response = $input.first().json || {};\nconst data = response.data || response;\nconst status = String(data.status || data.state || '').toUpperCase();\nconst sunoData = data.response?.sunoData || data.sunoData || [];\nconst first = Array.isArray(sunoData) ? sunoData[0] : null;\nconst bgmUrl = first?.audioUrl || first?.streamAudioUrl || data.audioUrl || null;\nconst failed = ['CREATE_TASK_FAILED', 'GENERATE_AUDIO_FAILED', 'CALLBACK_EXCEPTION', 'SENSITIVE_WORD_ERROR', 'FAIL', 'FAILED', 'ERROR'].includes(status);\nreturn [{ json: { ...base, bgm_poll_response: response, bgm_state: status, bgm_failed: failed, bgm_audio_url: bgmUrl } }];"
+        "jsCode": "const base = $('Normalize BGM Task').first().json;\nconst response = $input.first().json || {};\nconst data = response.data || response;\nconst status = String(data.status || data.state || '').toUpperCase();\nconst sunoData =\n  data.response?.sunoData ||\n  data.sunoData ||\n  data.response?.data ||\n  data.data ||\n  [];\nconst first = Array.isArray(sunoData) ? sunoData[0] : sunoData;\nconst bgmUrl =\n  first?.audioUrl ||\n  first?.streamAudioUrl ||\n  first?.sourceAudioUrl ||\n  first?.audio_url ||\n  data.response?.audioUrl ||\n  data.response?.streamAudioUrl ||\n  data.audioUrl ||\n  data.streamAudioUrl ||\n  null;\nconst failed = ['CREATE_TASK_FAILED', 'GENERATE_AUDIO_FAILED', 'CALLBACK_EXCEPTION', 'SENSITIVE_WORD_ERROR', 'FAIL', 'FAILED', 'ERROR'].includes(status);\nif (failed) {\n  throw new Error('KIE BGM failed. state=' + status + ', taskId=' + (base.bgm_task_id || '-') + ', message=' + (data.failMsg || data.message || response.msg || response.error || ''));\n}\nreturn [{ json: { ...base, bgm_poll_response: response, bgm_state: status, bgm_failed: false, bgm_audio_url: bgmUrl } }];"
       },
       "id": "0e68a2f1-1917-4be8-ba91-434c2012b672",
       "name": "Parse BGM Result",
@@ -867,6 +868,84 @@
         5216,
         2528
       ]
+    },
+    {
+      "id": "024feec3-2110-4a70-9eb6-4056e13742c6",
+      "name": "BGM Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        8352,
+        2224
+      ],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{!!$json.bgm_audio_url}}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b07b5b80-ebc0-4c98-b921-08bc4ed7e9eb",
+      "name": "Wait BGM Retry 90s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        8640,
+        2080
+      ],
+      "parameters": {
+        "amount": "={{$json.config.bgm_retry_wait_seconds || 90}}"
+      },
+      "webhookId": "35800c3e-14bb-4731-8ba6-d1c7fbe3be3c"
+    },
+    {
+      "id": "b67d3061-1577-45a9-b260-92175bcb2b61",
+      "name": "KIE Get BGM Task Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8912,
+        2080
+      ],
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/generate/record-info",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{$json.bgm_task_id}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MV5JVbdiJSoVx9O8",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "e13d8ff4-a180-4a3e-8210-2cae1daba58f",
+      "name": "Parse BGM Result Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9184,
+        2080
+      ],
+      "parameters": {
+        "jsCode": "const previous = $('Parse BGM Result').first().json;\nconst response = $input.first().json || {};\nconst data = response.data || response;\nconst status = String(data.status || data.state || '').toUpperCase();\nconst sunoData =\n  data.response?.sunoData ||\n  data.sunoData ||\n  data.response?.data ||\n  data.data ||\n  [];\nconst first = Array.isArray(sunoData) ? sunoData[0] : sunoData;\nconst bgmUrl =\n  first?.audioUrl ||\n  first?.streamAudioUrl ||\n  first?.sourceAudioUrl ||\n  first?.audio_url ||\n  data.response?.audioUrl ||\n  data.response?.streamAudioUrl ||\n  data.audioUrl ||\n  data.streamAudioUrl ||\n  null;\nconst failed = ['CREATE_TASK_FAILED', 'GENERATE_AUDIO_FAILED', 'CALLBACK_EXCEPTION', 'SENSITIVE_WORD_ERROR', 'FAIL', 'FAILED', 'ERROR'].includes(status);\nif (failed) {\n  throw new Error('KIE BGM failed after retry. state=' + status + ', taskId=' + (previous.bgm_task_id || '-') + ', message=' + (data.failMsg || data.message || response.msg || response.error || ''));\n}\nif (!bgmUrl) {\n  throw new Error('KIE BGM still not ready after retry. state=' + (status || '-') + ', taskId=' + (previous.bgm_task_id || '-') + '. Run workflow again or increase bgm_retry_wait_seconds.');\n}\nreturn [{ json: { ...previous, bgm_poll_response: response, bgm_state: status, bgm_failed: false, bgm_audio_url: bgmUrl, bgm_retry_attempted: true } }];"
+      }
     }
   ],
   "connections": {
@@ -1082,7 +1161,7 @@
       "main": [
         [
           {
-            "node": "Use Live Render?",
+            "node": "BGM Ready?",
             "type": "main",
             "index": 0
           }
@@ -1409,6 +1488,57 @@
           }
         ]
       ]
+    },
+    "BGM Ready?": {
+      "main": [
+        [
+          {
+            "node": "Use Live Render?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait BGM Retry 90s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait BGM Retry 90s": {
+      "main": [
+        [
+          {
+            "node": "KIE Get BGM Task Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KIE Get BGM Task Retry": {
+      "main": [
+        [
+          {
+            "node": "Parse BGM Result Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse BGM Result Final": {
+      "main": [
+        [
+          {
+            "node": "Use Live Render?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -1417,6 +1547,6 @@
   },
   "staticData": null,
   "pinData": {},
-  "versionId": "f5d52af5-1fc6-49c8-b217-786f923ee49b",
+  "versionId": "f714fd33-083d-4d5d-acf8-5775f417682b",
   "triggerCount": 0
 }

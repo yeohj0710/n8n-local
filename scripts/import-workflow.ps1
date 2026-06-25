@@ -6,7 +6,9 @@ $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $PSScriptRoot
 if (-not $Workflow) {
-  $Workflow = Join-Path $Root "workflows\n8n_하루건강약사_수동실행.json"
+  $Workflow = Get-ChildItem -LiteralPath (Join-Path $Root "workflows") -Filter "*.json" |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1 -ExpandProperty FullName
 }
 
 if (-not (Test-Path -LiteralPath $Workflow)) {

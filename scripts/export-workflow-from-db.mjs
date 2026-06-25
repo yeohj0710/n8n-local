@@ -8,6 +8,12 @@ const outDir = path.join(root, 'workflows');
 const outPath = path.join(outDir, 'n8n_하루건강약사_수동실행.json');
 const workflowId = process.env.N8N_WORKFLOW_ID || 'mxrYb3maJS31gEYC';
 
+function parseJson(value, fallback) {
+  if (value === null || value === undefined || value === '') return fallback;
+  if (typeof value === 'object') return value;
+  return JSON.parse(value);
+}
+
 function readWorkflow() {
   return new Promise((resolve, reject) => {
     const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (openError) => {
@@ -27,7 +33,7 @@ function readWorkflow() {
           reject(new Error(`Workflow not found: ${workflowId}`));
           return;
         }
-        resolve(row);
+        resolve({ id: workflowId, ...row });
       },
     );
   });
@@ -35,12 +41,13 @@ function readWorkflow() {
 
 const row = await readWorkflow();
 const workflow = {
+  id: row.id,
   name: row.name,
-  nodes: JSON.parse(row.nodes),
-  connections: JSON.parse(row.connections || '{}'),
-  settings: JSON.parse(row.settings || '{}'),
-  staticData: row.staticData ? JSON.parse(row.staticData) : null,
-  pinData: JSON.parse(row.pinData || '{}'),
+  nodes: parseJson(row.nodes, []),
+  connections: parseJson(row.connections, {}),
+  settings: parseJson(row.settings, {}),
+  staticData: parseJson(row.staticData, null),
+  pinData: parseJson(row.pinData, {}),
   versionId: row.versionId,
   triggerCount: row.triggerCount,
 };
