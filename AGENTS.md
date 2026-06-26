@@ -38,6 +38,9 @@ Latest known workflow:
 - Default video duration is 5 seconds. Keep this short-card workflow around 4-5 seconds unless the user explicitly asks longer.
 - Default YouTube upload privacy is public. Existing private videos are a public-publishing action; get explicit confirmation before changing old videos to public.
 - Do not run the full workflow without considering cost and side effects. It spends KIE credits and can upload a public YouTube video.
+- Do not put visible boilerplate safety copy in generated output. Avoid footer/script/description/comment text like `전문인의 조언을 받으세요`, `전문가 조언`, `진료를 대신하지 않습니다`, or generic `not medical advice` disclaimers.
+- Keep internal medical safety checks for cure/guarantee/dosage/prescription-avoidance claims. Remove only the user-visible disclaimer padding.
+- Pinned/top-level YouTube comment should be exactly: `좋아요와 구독 한 번씩 부탁드립니다.`
 
 ## Important Paths
 
