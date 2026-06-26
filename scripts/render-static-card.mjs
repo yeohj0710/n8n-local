@@ -15,7 +15,7 @@ const outputDir = payload.output_dir || process.env.LOCAL_RENDER_DIR || path.res
 const ffmpegPath = payload.ffmpeg_path || process.env.FFMPEG_PATH || 'ffmpeg';
 const width = Number(payload.width || 1080);
 const height = Number(payload.height || 1920);
-const duration = Number(payload.duration || 38);
+const duration = Number(payload.duration || 5);
 
 await fs.mkdir(outputDir, { recursive: true });
 

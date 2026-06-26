@@ -14,6 +14,7 @@ Local n8n setup for the 하루건강약사 image+BGM Shorts workflow.
 - The GPT image is the complete 9:16 card, including all Korean title/list text.
 - The list order is `1위` first at the top.
 - BGM targets Korean ages 50-60: calm, warm, premium, slow, no vocals.
+- Default video duration is 5 seconds.
 - Local ffmpeg does not add text overlays; it only sharpens/resizes the final image and muxes BGM.
 
 ## Local Paths

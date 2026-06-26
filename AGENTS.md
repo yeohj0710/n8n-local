@@ -35,6 +35,7 @@ Latest known workflow:
 - Ranked cards must show `1위` at the top, then `2위`, `3위`, etc. Do not sort `7위` first.
 - BGM must target Korean ages 50-60: warm, calm, premium health-program mood, slow around 76 BPM, no vocals, no EDM, no heavy drums.
 - Image prompt must push premium modern infographic quality: crisp Korean typography, sharp edges, high contrast, no blur, no retro/cheap clipart look.
+- Default video duration is 5 seconds. Keep this short-card workflow around 4-5 seconds unless the user explicitly asks longer.
 - Default YouTube upload privacy is public. Existing private videos are a public-publishing action; get explicit confirmation before changing old videos to public.
 - Do not run the full workflow without considering cost and side effects. It spends KIE credits and can upload a public YouTube video.
 
