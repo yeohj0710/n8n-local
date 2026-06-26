@@ -185,6 +185,18 @@ Fix:
 - Confirm redirect URI in Google Cloud exactly matches `http://localhost:5678/rest/oauth2-credential/callback`
 - Click `Sign in with Google` from local n8n via `localhost`
 
+### KIE Claude 500 Internal Error
+
+Cause:
+
+KIE Claude can return HTTP 500 with `Internal error, please try again later`. This is not a credential/header problem if the error is 500. The workflow used to stop at `KIE Claude Generate Pack` before image/BGM/render.
+
+Fix:
+
+- `KIE Claude Generate Pack` has `retryOnFail=true`, `maxTries=3`, `waitBetweenTries=10000`, and `continueOnFail=true`.
+- `Parse KIE Claude Pack` must throw on auth errors, but for recoverable 429/5xx/internal/timeout errors it returns the fallback rank pack with `ai_source=mock_after_kie_claude_error`.
+- Do not route this through the old `Mock Viral Rank Pack` node directly in live mode; that node intentionally throws unless dry-run.
+
 ### KIE `Unauthorized`
 
 Cause:
